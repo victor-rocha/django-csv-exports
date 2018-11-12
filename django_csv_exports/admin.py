@@ -1,6 +1,9 @@
 import csv
 
-import pandas
+try:
+    import pandas
+except ImportError:
+    pandas = None
 
 import django
 from django.conf import settings
@@ -37,8 +40,14 @@ def export_as_csv(admin_model, request, queryset):
             response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=%s.csv' % text(opts).replace('.', '_')
 
-        queryset = queryset.values_list(*field_names)
-        pandas.DataFrame(list(queryset), columns=field_names).to_csv(response, index=False, encoding='utf-8')
+        if pandas is not None:
+            queryset = queryset.values_list(*field_names)
+            pandas.DataFrame(list(queryset), columns=field_names).to_csv(response, index=False, encoding='utf-8')
+        else:
+            writer = csv.writer(response)
+            writer.writerow(list(field_names))
+            for obj in queryset:
+                writer.writerow([text(getattr(obj, field)).encode("utf-8", "replace") for field in field_names])
         return response
     return HttpResponseForbidden()
 export_as_csv.short_description = "Export selected objects as csv file"
