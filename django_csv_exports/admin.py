@@ -1,10 +1,5 @@
 import csv
 
-try:
-    import pandas
-except ImportError:
-    pandas = None
-
 import django
 from django.conf import settings
 from django.contrib import admin
@@ -17,6 +12,13 @@ def export_as_csv(admin_model, request, queryset):
     Generic csv export admin action.
     based on http://djangosnippets.org/snippets/1697/
     """
+
+    # import pandas lazily as to not slow down ./manage.py
+    try:
+        import pandas
+    except ImportError:
+        pandas = None
+
     # everyone has perms to export as csv unless explicitly defined
     if getattr(settings, 'DJANGO_EXPORTS_REQUIRE_PERM', None):
         admin_opts = admin_model.opts
