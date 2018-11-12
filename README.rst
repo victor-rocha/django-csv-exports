@@ -17,7 +17,7 @@ Installation
 
 - Python 2.7, 3.3+
 - `Django <http://www.djangoproject.com/>`_ >= 1.5
-- Pandas
+- (optional) Pandas
     - Numpy
     - python-dateutil
     - pytz
@@ -25,6 +25,13 @@ Installation
 To install::
 
     pip install django-csv-exports
+
+or to include the optional dependency::
+
+    pip install django-csv-exports[pandas]
+
+Exporting with pandas may be faster than the standard library under certain
+circumstances, test with your dataset.
 
 Next add `django_exports` to your `INSTALLED_APPS` to include the related css/js::
 

@@ -1,7 +1,5 @@
 import csv
 
-import pandas
-
 import django
 from django.conf import settings
 from django.contrib import admin
@@ -14,6 +12,13 @@ def export_as_csv(admin_model, request, queryset):
     Generic csv export admin action.
     based on http://djangosnippets.org/snippets/1697/
     """
+
+    # import pandas lazily as to not slow down ./manage.py
+    try:
+        import pandas
+    except ImportError:
+        pandas = None
+
     # everyone has perms to export as csv unless explicitly defined
     if getattr(settings, 'DJANGO_EXPORTS_REQUIRE_PERM', None):
         admin_opts = admin_model.opts
@@ -37,8 +42,14 @@ def export_as_csv(admin_model, request, queryset):
             response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=%s.csv' % text(opts).replace('.', '_')
 
-        queryset = queryset.values_list(*field_names)
-        pandas.DataFrame(list(queryset), columns=field_names).to_csv(response, index=False, encoding='utf-8')
+        if pandas is not None:
+            queryset = queryset.values_list(*field_names)
+            pandas.DataFrame(list(queryset), columns=field_names).to_csv(response, index=False, encoding='utf-8')
+        else:
+            writer = csv.writer(response)
+            writer.writerow(list(field_names))
+            for obj in queryset:
+                writer.writerow([text(getattr(obj, field)) for field in field_names])
         return response
     return HttpResponseForbidden()
 export_as_csv.short_description = "Export selected objects as csv file"
