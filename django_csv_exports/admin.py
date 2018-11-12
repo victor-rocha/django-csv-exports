@@ -49,7 +49,7 @@ def export_as_csv(admin_model, request, queryset):
             writer = csv.writer(response)
             writer.writerow(list(field_names))
             for obj in queryset:
-                writer.writerow([text(getattr(obj, field)).encode("utf-8", "replace") for field in field_names])
+                writer.writerow([text(getattr(obj, field)) for field in field_names])
         return response
     return HttpResponseForbidden()
 export_as_csv.short_description = "Export selected objects as csv file"
